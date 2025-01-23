@@ -1,4 +1,29 @@
 ---
+- name: Install Vector
+  hosts: vector
+  handlers:
+    - name: Start vector
+      become: true
+      ansible.builtin.service:
+        name: vector
+        state: restarted
+  tasks:
+    - name: Get vector distrib
+      ansible.builtin.get_url:
+        url: "https://apt.vector.dev/pool/v/ve/vector_{{ vector_version }}-1_amd64.deb"
+        dest: "./vector_{{ vector_version }}-1_amd64.deb"
+        mode: "0644"
+    - name: Install vector distrib
+      become: true
+      ansible.builtin.apt:
+        deb: "./vector_{{ vector_version }}-1_amd64.deb"
+    - name: Deploy template config
+      become: true
+      ansible.builtin.template:
+        src: "vector.yml.j2"
+        dest: "{{ vector_config_dir }}/vector.yml"
+        mode: "0644"
+
 - name: Install Clickhouse
   hosts: clickhouse
   handlers:
@@ -8,29 +33,34 @@
         name: clickhouse-server
         state: restarted
   tasks:
-    - block:
+    - name: Get distrib
+      block:
         - name: Get clickhouse distrib
           ansible.builtin.get_url:
             url: "https://packages.clickhouse.com/rpm/stable/{{ item }}-{{ clickhouse_version }}.noarch.rpm"
             dest: "./{{ item }}-{{ clickhouse_version }}.rpm"
+            mode: o644
           with_items: "{{ clickhouse_packages }}"
       rescue:
         - name: Get clickhouse distrib
           ansible.builtin.get_url:
             url: "https://packages.clickhouse.com/rpm/stable/clickhouse-common-static-{{ clickhouse_version }}.x86_64.rpm"
             dest: "./clickhouse-common-static-{{ clickhouse_version }}.rpm"
+            mode: o644
     - name: Install clickhouse packages
       become: true
       ansible.builtin.yum:
+        use_backend: yum4
         name:
-          - clickhouse-common-static-{{ clickhouse_version }}.rpm
           - clickhouse-client-{{ clickhouse_version }}.rpm
+          - clickhouse-common-static-{{ clickhouse_version }}.rpm
           - clickhouse-server-{{ clickhouse_version }}.rpm
+        disable_gpg_check: true
       notify: Start clickhouse service
     - name: Flush handlers
-      meta: flush_handlers
+      ansible.builtin.meta: flush_handlers
     - name: Create database
       ansible.builtin.command: "clickhouse-client -q 'create database logs;'"
       register: create_db
-      failed_when: create_db.rc != 0 and create_db.rc !=82
+      failed_when: create_db.rc != 0 and create_db.rc != 82
       changed_when: create_db.rc == 0

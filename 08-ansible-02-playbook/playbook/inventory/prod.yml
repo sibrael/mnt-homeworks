@@ -1,5 +1,10 @@
 ---
 clickhouse:
   hosts:
-    clickhouse-01:
-      ansible_host: <IP_here>
+    localhost:
+      ansible_connection: local
+
+vector:
+  hosts:
+    localhost:
+      ansible_connection: local
