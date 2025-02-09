@@ -42,8 +42,14 @@
 ### Решение
 
 Ссылки на плэйбук и роли
+
+
 ansible-vector-role - https://github.com/sibrael/vector.git
+
+
 ansible-light-house-role - https://github.com/sibrael/Light-House.git
+
+
 result-playbook - https://github.com/sibrael/mnt-homeworks/tree/MNT-video/08-ansible-02-playbook/playbook
 
 ---
