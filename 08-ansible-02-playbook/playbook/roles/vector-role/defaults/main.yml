@@ -1,0 +1,4 @@
+---
+# defaults file for vector-role
+vector_version: "0.44.0"
+vector_config_dir: "/etc/vector"

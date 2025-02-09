@@ -1,0 +1,11 @@
+---
+# handlers file for light_house
+- name: start-nginx
+  become: true
+  ansible.builtin.command: nginx
+  register: nginx_start_output
+
+- name: reload-nginx
+  become: true
+  ansible.builtin.command: nginx -s reload
+  register: nginx_reload_output
